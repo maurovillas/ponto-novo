@@ -1340,6 +1340,7 @@ export default function App() {
     type: 'Folga',
     date: new Date(),
     reason: '',
+    justification: '',
     time: ''
   });
 
@@ -1367,7 +1368,9 @@ export default function App() {
       isAbsence: custom ? !!custom.isAbsence : false,
       isManualAdjustment: custom ? !!custom.isManualAdjustment : false,
       isDifferentWorkload: custom ? !!custom.isDifferentWorkload : false,
-      shift: custom ? custom.shift : (isOffDefault ? 'Folga' : '09:00 - 18:00')
+      shift: custom ? custom.shift : (isOffDefault ? 'Folga' : '09:00 - 18:00'),
+      reason: custom ? custom.reason : '',
+      justification: custom ? custom.justification : ''
     };
   };
 
@@ -1679,6 +1682,8 @@ export default function App() {
     isAbsence?: boolean;
     isManualAdjustment?: boolean;
     isDifferentWorkload?: boolean;
+    reason?: string;
+    justification?: string;
   }>>({});
 
   const getDaysInMonth = (year: number, month: number) => {
@@ -3524,7 +3529,10 @@ export default function App() {
                 <p className="text-[10px] text-slate-400 font-medium">{status.shift}</p>
               </div>
             ) : status.isOff ? (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center cursor-pointer" onClick={() => {
+                setSpecialRegForm({ ...specialRegForm, type: 'Folga', date: selectedDate, reason: status.reason || '', justification: status.justification || '' });
+                setShowSpecialRegPopup(true);
+              }}>
                 <div className="w-20 h-20 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue mb-4 shadow-inner">
                   <Coffee size={40} />
                 </div>
@@ -6351,12 +6359,22 @@ export default function App() {
                   )}
 
                   <div>
-                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Motivo / Descrição</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Motivo</label>
                     <input
                       type="text"
                       value={specialRegForm.reason}
                       onChange={(e) => setSpecialRegForm({ ...specialRegForm, reason: e.target.value })}
                       placeholder={`Ex: ${specialRegForm.type}...`}
+                      className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-brand-blue transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Justificativa</label>
+                    <input
+                      type="text"
+                      value={specialRegForm.justification}
+                      onChange={(e) => setSpecialRegForm({ ...specialRegForm, justification: e.target.value })}
+                      placeholder="Ex: Motivo detalhado..."
                       className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm font-medium text-slate-900 dark:text-white outline-none focus:border-brand-blue transition-colors"
                     />
                   </div>
@@ -6375,6 +6393,8 @@ export default function App() {
                         isAbsence: specialRegForm.type === 'Falta',
                         isManualAdjustment: specialRegForm.type === 'Ajuste Manual',
                         isDifferentWorkload: specialRegForm.type === 'Carga Horária Diferente',
+                        reason: specialRegForm.reason,
+                        justification: specialRegForm.justification,
                       };
 
                       if ((specialRegForm.type === 'Ajuste Manual' || specialRegForm.type === 'Carga Horária Diferente') && specialRegForm.time) {
