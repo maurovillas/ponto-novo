@@ -972,32 +972,43 @@ export default function App() {
   
   // Auth Listener (Supabase Mode)
   useEffect(() => {
-    const getAnonymousUser = () => {
-      let localId = localStorage.getItem('ponto_anonymous_id');
-      
-      if (!localId) {
-        localId = crypto.randomUUID();
-        localStorage.setItem('ponto_anonymous_id', localId);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const user = session.user;
+        setUser({
+          id: user.id,
+          supabaseId: user.id,
+          email: user.email,
+          displayName: user.user_metadata.full_name || user.email,
+          photoURL: user.user_metadata.avatar_url || '',
+          user_metadata: user.user_metadata
+        });
       }
-
-      // Create a virtual user object
-      const virtualUser: any = {
-        id: localId,
-        supabaseId: localId,
-        email: 'usuario@local.app',
-        displayName: localStorage.getItem('ponto_user_name') || 'Usuário Local',
-        photoURL: localStorage.getItem('ponto_user_avatar') || '',
-        user_metadata: {
-          full_name: localStorage.getItem('ponto_user_name') || 'Usuário Local',
-          avatar_url: localStorage.getItem('ponto_user_avatar') || ''
-        }
-      };
-
-      setUser(virtualUser);
       setIsAuthReady(true);
     };
 
-    getAnonymousUser();
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        const user = session.user;
+        setUser({
+          id: user.id,
+          supabaseId: user.id,
+          email: user.email,
+          displayName: user.user_metadata.full_name || user.email,
+          photoURL: user.user_metadata.avatar_url || '',
+          user_metadata: user.user_metadata
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Check for RLS on load
@@ -1093,34 +1104,10 @@ export default function App() {
     fetchAtestados();
 
     // Real-time subscription - Logs
-    const subscription = supabase
-      .channel('logs_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'logs',
-        filter: `user_id=eq.${user.supabaseId}`
-      }, () => {
-        fetchLogs();
-      })
-      .subscribe();
-
     // Real-time subscription - Atestados
-    const atestadosSubscription = supabase
-      .channel('atestados_changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'medical_certificates',
-        filter: `user_id=eq.${user.supabaseId}`
-      }, () => {
-        fetchAtestados();
-      })
-      .subscribe();
-
+    
     return () => {
-      subscription.unsubscribe();
-      atestadosSubscription.unsubscribe();
+      // Subscriptions removed for compatibility with free tier
     };
   }, [user?.supabaseId]);
 
@@ -3109,6 +3096,21 @@ export default function App() {
     }
     
     console.log("Log saved successfully. ID:", data?.id);
+    
+    if (data) {
+      setLogs(prevLogs => [...prevLogs, {
+        id: data.id,
+        type: data.type,
+        timestamp: new Date(data.timestamp),
+        location: data.location,
+        coords: data.coords,
+        ticketImage: data.ticket_image,
+        observations: data.observations,
+        nsr: data.nsr,
+        workedMs: data.worked_ms,
+        note: data.note
+      }]);
+    }
     
     if (photoUrl && data) {
       console.log("Starting OCR extraction for log:", data.id);
