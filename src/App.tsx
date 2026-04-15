@@ -83,6 +83,7 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+import { Login } from './components/Login';
 import { supabase } from './supabase';
 
 interface ErrorBoundaryProps {
@@ -827,8 +828,47 @@ const DocumentScanner = ({ onScan, onClose }: { onScan: (imageSrc: string) => vo
 };
 
 export default function App() {
+  const [user, setUser] = useState<any>(null);
   const [isIframe, setIsIframe] = useState(false);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = session.user;
+        setUser({
+          id: u.id,
+          supabaseId: u.id,
+          email: u.email,
+          displayName: u.user_metadata.full_name || u.email,
+          photoURL: u.user_metadata.avatar_url || '',
+          user_metadata: u.user_metadata
+        });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = session.user;
+        setUser({
+          id: u.id,
+          supabaseId: u.id,
+          email: u.email,
+          displayName: u.user_metadata.full_name || u.email,
+          photoURL: u.user_metadata.avatar_url || '',
+          user_metadata: u.user_metadata
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (!user) {
+    return <Login />;
+  }
 
   useEffect(() => {
     try {
@@ -849,7 +889,6 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const [user, setUser] = useState<any>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu'>(() => {
