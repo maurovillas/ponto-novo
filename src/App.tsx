@@ -5780,17 +5780,6 @@ export default function App() {
         ? 'overflow-hidden' 
         : 'overflow-y-auto'
       }`}>
-        {/* RLS Warning Banner */}
-        {isRLSBlocked && (
-          <div className="bg-rose-500 text-white px-6 py-3 flex items-center justify-between gap-4 overflow-hidden mb-4">
-            <div className="flex items-center gap-3">
-              <Shield size={20} className="flex-shrink-0" />
-              <p className="text-[11px] font-bold leading-tight">
-                Banco de dados bloqueado (Erro RLS).
-              </p>
-            </div>
-          </div>
-        )}
         <AnimatePresence mode="wait">
           {currentTab === 'ponto' && (
             <div className="w-full">
