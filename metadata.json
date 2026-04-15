@@ -1,8 +1,6 @@
 {
-  "name": "Ponto-Novo",
-  "description": "Aplicativo de ponto eletrônico moderno e intuitivo para gestão de jornada de trabalho.",
-  "requestFramePermissions": [
-    "geolocation",
-    "camera"
-  ]
+  "name": "Ponto-MVBS",
+  "description": "NOVA TENTATIVA DE CRIAR O APP DE PONTO PARA USO PESSOAL",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }
