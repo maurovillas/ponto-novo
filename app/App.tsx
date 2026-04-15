@@ -134,11 +134,7 @@ const months = [
 ];
 
 // Helper to update map center
-function ChangeView({ center }: { center: [number, number] }) {
-  const map = useMap();
-  map.setView(center);
-  return null;
-}
+// ChangeView moved to LeafletInit.tsx
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
