@@ -1799,6 +1799,7 @@ export default function App() {
   };
 
   const saveSettings = async (newSettings: any) => {
+    setSettings(newSettings);
     if (!user || !user.supabaseId) return;
 
     const dbSettings = {
@@ -5781,24 +5782,14 @@ export default function App() {
       }`}>
         {/* RLS Warning Banner */}
         {isRLSBlocked && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            className="bg-rose-500 text-white px-6 py-3 flex items-center justify-between gap-4 overflow-hidden mb-4"
-          >
+          <div className="bg-rose-500 text-white px-6 py-3 flex items-center justify-between gap-4 overflow-hidden mb-4">
             <div className="flex items-center gap-3">
               <Shield size={20} className="flex-shrink-0" />
               <p className="text-[11px] font-bold leading-tight">
-                Banco de dados bloqueado (Erro RLS). Clique para corrigir agora e permitir o salvamento.
+                Banco de dados bloqueado (Erro RLS).
               </p>
             </div>
-            <button 
-              onClick={() => setShowDatabaseHelp(true)}
-              className="bg-white text-rose-500 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase whitespace-nowrap active:scale-95 transition-transform"
-            >
-              Corrigir
-            </button>
-          </motion.div>
+          </div>
         )}
         <AnimatePresence mode="wait">
           {currentTab === 'ponto' && (
