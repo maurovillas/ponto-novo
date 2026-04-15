@@ -62,29 +62,18 @@ import {
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform, animate } from 'motion/react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import dynamic from 'next/dynamic';
+const LeafletInit = dynamic(() => import('../components/LeafletInit'), { ssr: false });
+
 import Tesseract from 'tesseract.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-// Fix for Leaflet marker icons in React
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-    iconUrl: icon.src,
-    shadowUrl: iconShadow.src,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-});
-
-L.Marker.prototype.options.icon = DefaultIcon;
-
 import { Login } from './components/Login';
-import { supabase } from './supabase';
+import { getSupabase } from './supabase';
+const supabase = getSupabase();
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -122,7 +111,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
           <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Ops! Algo deu errado</h1>
           <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-md">{errorMessage}</p>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.reload();
+              }
+            }}
             className="px-6 py-2 bg-brand-blue text-white rounded-xl font-bold shadow-lg hover:shadow-brand-blue/20 transition-all"
           >
             Recarregar Aplicativo
@@ -899,14 +892,16 @@ export default function App() {
 
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu'>(() => {
+  const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu'>('ponto');
+  useEffect(() => {
     const saved = localStorage.getItem('chronos_tab');
-    return (saved as any) || 'ponto';
-  });
-  const [escalaView, setEscalaView] = useState<'semanal' | 'mensal'>(() => {
+    if (saved) setCurrentTab(saved as any);
+  }, []);
+  const [escalaView, setEscalaView] = useState<'semanal' | 'mensal'>('semanal');
+  useEffect(() => {
     const saved = localStorage.getItem('chronos_escala_view');
-    return (saved as any) || 'semanal';
-  });
+    if (saved) setEscalaView(saved as any);
+  }, []);
   const [historyDate, setHistoryDate] = useState(new Date());
   const [historicoView, setHistoricoView] = useState<'mensal' | 'semanal'>('mensal');
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
@@ -946,46 +941,47 @@ export default function App() {
   const [locationError, setLocationError] = useState<string | null>(null);
   
   // Settings State
-  const [settings, setSettings] = useState(() => {
+  const [settings, setSettings] = useState({
+    notifications: true,
+    notificationPrefs: { alerts: true, reminders: true, system: true },
+    theme: 'system',
+    colorPalette: 'default',
+    vacationMode: {
+      active: false,
+      startDate: '',
+      endDate: ''
+    },
+    workload: {
+      daily: '08:00',
+      weekly: '44:00',
+      monthly: '176:00',
+      break: '01:00'
+    },
+    tolerance: 10, // minutes
+    nightShift: {
+      active: false,
+      start: '22:00',
+      end: '05:00',
+      multiplier: 1.2
+    },
+    bankOfHours: {
+      active: false,
+      initialBalance: 0
+    },
+    totalBalanceView: 'week',
+    weekStart: 'sunday' // 'sunday' or 'monday'
+  });
+
+  useEffect(() => {
     const saved = localStorage.getItem('chronos_settings');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        setSettings(JSON.parse(saved));
       } catch (e) {
         console.error("Error parsing settings:", e);
       }
     }
-    return {
-      notifications: true,
-      notificationPrefs: { alerts: true, reminders: true, system: true },
-      theme: 'system',
-      colorPalette: 'default',
-      vacationMode: {
-        active: false,
-        startDate: '',
-        endDate: ''
-      },
-      workload: {
-        daily: '08:00',
-        weekly: '44:00',
-        monthly: '176:00',
-        break: '01:00'
-      },
-      tolerance: 10, // minutes
-      nightShift: {
-        active: false,
-        start: '22:00',
-        end: '05:00',
-        multiplier: 1.2
-      },
-      bankOfHours: {
-        active: false,
-        initialBalance: 0
-      },
-      totalBalanceView: 'week',
-      weekStart: 'sunday' // 'sunday' or 'monday'
-    };
-  });
+  }, []);
 
   // Persist settings to localStorage
   useEffect(() => {
@@ -1082,11 +1078,13 @@ export default function App() {
   }, [user]);
 
   const handleLogout = async () => {
-    if (window.confirm("Isso apenas limpará seus dados locais de identificação. Deseja continuar?")) {
+    if (typeof window !== 'undefined' && window.confirm("Isso apenas limpará seus dados locais de identificação. Deseja continuar?")) {
       localStorage.removeItem('ponto_anonymous_id');
       localStorage.removeItem('ponto_user_name');
       localStorage.removeItem('ponto_user_avatar');
-      window.location.reload();
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
     }
   };
 
@@ -1519,12 +1517,13 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <LeafletInit />
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans">
         {/* Main content will go here */}
         <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="relative flex justify-center items-center mb-6">
             <h1 className="text-2xl font-bold">Chronos</h1>
-            <button onClick={handleLogout} className="text-rose-500">
+            <button onClick={handleLogout} className="absolute right-0 text-rose-500">
               <LogOut size={24} />
             </button>
           </div>
