@@ -5512,18 +5512,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      {isIframe && (
-        <div className="fixed top-0 left-0 right-0 z-[9999] bg-rose-500 text-white p-4 text-center shadow-lg">
-          <p className="font-bold">Acesso à Câmera Bloqueado</p>
-          <p className="text-sm mb-2">Para tirar fotos, abra o app em uma nova aba.</p>
-          <button 
-            onClick={() => window.open(window.location.href, '_blank')}
-            className="bg-white text-rose-500 px-4 py-2 rounded-full font-bold text-sm"
-          >
-            Abrir em Nova Aba
-          </button>
-        </div>
-      )}
+      {/* Removed camera access banner */}
       <div className="fixed inset-0 sm:static sm:min-h-screen bg-brand-blue sm:bg-slate-200 sm:dark:bg-slate-900 flex items-center justify-center sm:p-8">
         <div className="w-full h-full sm:h-[1000px] sm:max-h-[calc(100vh-4rem)] sm:max-w-[376px] bg-white dark:bg-slate-950 relative flex flex-col sm:rounded-[3rem] sm:border-[12px] sm:border-slate-800 sm:shadow-2xl overflow-hidden [transform:translate3d(0,0,0)]">
           <div className="flex-1 flex flex-col relative overflow-x-hidden transition-colors duration-300">
