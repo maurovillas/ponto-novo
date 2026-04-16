@@ -5,6 +5,7 @@ const supabase = getSupabase();
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
 
@@ -29,7 +30,15 @@ export const Login = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: {
+          full_name: name
+        }
+      }
+    });
     if (error) alert(error.message);
     else alert('Verifique seu e-mail para confirmar o cadastro.');
     setLoading(false);
@@ -71,6 +80,16 @@ export const Login = () => {
         onSubmit={mode === 'login' ? handleLogin : mode === 'signup' ? handleSignUp : handleForgotPassword} 
         className="w-full max-w-sm flex flex-col gap-4"
       >
+        {mode === 'signup' && (
+          <input 
+            type="text" 
+            placeholder="Nome completo" 
+            value={name} 
+            onChange={(e) => setName(e.target.value)} 
+            className="p-3 border rounded-xl" 
+            required 
+          />
+        )}
         <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="p-3 border rounded-xl" required />
         {mode !== 'forgot' && (
           <input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} className="p-3 border rounded-xl" required />
