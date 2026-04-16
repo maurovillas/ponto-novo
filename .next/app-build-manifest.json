@@ -31,6 +31,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/test-create-user/route.js"
+    ],
+    "/api/test-crud/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/test-crud/route.js"
     ]
   }
 }
