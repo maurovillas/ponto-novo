@@ -134,26 +134,35 @@ export default function UserManagement({ user }: UserManagementProps) {
     if (!supabase) return;
 
     try {
+      // Para desenvolvimento: gerar um UUID válido em vez de ID temporário
+      const userId = crypto.randomUUID();
+
       const newUser = {
-        ...formData,
-        id: `temp_${Date.now()}`, // Temporary ID for UI
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        id: userId, // Usar UUID válido
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        company: formData.company,
+        department: formData.department,
         avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100`,
-        registrationNumber: '',
+        registration_number: '', // Usar snake_case como no schema
         cpf: '',
-        matricula: ''
+        matricula: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      // In a real app, you'd create the user in auth first, then profile
-      // For now, we'll just add to profiles table
+      // Primeiro, tentar criar o usuário no auth (isso pode falhar em desenvolvimento)
+      // Para desenvolvimento, vamos simular criando apenas o perfil
+      console.log('Tentando criar usuário:', newUser);
+
       const { error } = await supabase
         .from('profiles')
         .insert([newUser]);
 
       if (error) {
         console.error('Error creating user:', error);
-        alert('Erro ao criar usuário');
+        alert(`Erro ao criar usuário: ${error.message || 'Erro desconhecido'}`);
         return;
       }
 
