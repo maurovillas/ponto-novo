@@ -62,9 +62,6 @@ import {
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform, animate } from 'motion/react';
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import dynamic from 'next/dynamic';
-const LeafletInit = dynamic(() => import('../components/LeafletInit'), { ssr: false });
-
 import Tesseract from 'tesseract.js';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -72,6 +69,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
 import { Login } from './components/Login';
+import Interface from './components/Interface';
 import { getSupabase } from './supabase';
 const supabase = getSupabase();
 
@@ -834,6 +832,8 @@ export default function App() {
   const [customShifts, setCustomShifts] = useState<Record<string, any>>({});
 
   useEffect(() => {
+    if (!supabase) return;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const u = session.user;
@@ -1011,6 +1011,11 @@ export default function App() {
 
   // Auth Listener (Supabase Mode)
   useEffect(() => {
+    if (!supabase) {
+      setIsAuthReady(true);
+      return;
+    }
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -1052,6 +1057,8 @@ export default function App() {
 
   // Check for RLS on load
   useEffect(() => {
+    if (!supabase) return;
+
     const checkRLS = async () => {
       if (user && user.supabaseId) {
         try {
@@ -1087,6 +1094,11 @@ export default function App() {
 
   // Supabase Sync - Logs
   useEffect(() => {
+    if (!supabase) {
+      setLogs([]);
+      return;
+    }
+
     if (!user || !user.supabaseId) {
       setLogs([]);
       return;
@@ -1155,6 +1167,7 @@ export default function App() {
 
   // Supabase Sync - Settings
   useEffect(() => {
+    if (!supabase) return;
     if (!user || !user.supabaseId) return;
 
     const fetchSettings = async () => {
@@ -1224,6 +1237,10 @@ export default function App() {
 
   // Supabase Sync - Custom Shifts
   useEffect(() => {
+    if (!supabase) {
+      setCustomShifts({});
+      return;
+    }
     if (!user || !user.supabaseId) {
       setCustomShifts({});
       return;
@@ -1279,6 +1296,7 @@ export default function App() {
 
   // Supabase Sync - Profile
   useEffect(() => {
+    if (!supabase) return;
     if (!user || !user.supabaseId) return;
 
     const fetchProfile = async () => {
@@ -1513,108 +1531,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <LeafletInit />
-      <div className="min-h-screen bg-slate-50 font-sans pb-20">
-        {/* Header */}
-        <div className="bg-blue-500 text-white p-4 shadow-md">
-          <div className="flex justify-between items-center mb-4">
-            <div className="w-8"></div>
-            <h1 className="text-xl font-bold">
-              {currentTab === 'ponto' ? 'Dia' : 
-               currentTab === 'menu' ? 'Menu' : 
-               currentTab === 'settings' ? 'Configurações' : 
-               currentTab === 'historico' ? 'Histórico' : 
-               currentTab === 'escala' ? 'Escala' : 'Outro'}
-            </h1>
-            <div className="flex gap-2">
-              <button className="text-white"><Download size={20} /></button>
-              <button className="text-white"><Plus size={20} /></button>
-            </div>
-          </div>
-
-          {/* Date Navigation */}
-          <div className="flex justify-between items-center mb-4 bg-transparent rounded-lg p-2">
-            <button className="text-white"><ChevronLeft size={20} /></button>
-            <button className="text-sm font-medium">seg., 30 mar. 2026</button>
-            <button className="text-white"><ChevronRight size={20} /></button>
-          </div>
-
-          {/* Work Stats */}
-          <div className="grid grid-cols-3 gap-2 text-center pb-2">
-            <div>
-              <div className="text-xs opacity-80">Trab. no dia</div>
-              <div className="text-sm font-bold">03h 39m</div>
-            </div>
-            <div>
-              <div className="text-xs opacity-80">Saldo do dia</div>
-              <div className="text-sm font-bold text-red-200">- 02h 21m</div>
-            </div>
-            <div>
-              <div className="text-xs opacity-80">Saldo total</div>
-              <div className="text-sm font-bold text-green-200">+ 176h 50m</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4">
-          {currentTab === 'ponto' && (
-            <div className="w-full max-w-md mx-auto space-y-6">
-              {/* Timeline */}
-              <div className="bg-transparent p-6 rounded-2xl shadow-none">
-                {logs.length > 0 ? (
-                  <div className="relative border-l-2 border-white/20 ml-4 space-y-8">
-                    {logs.map((log, index) => {
-                      const isInterval = log.type.includes('intervalo');
-                      const isExit = log.type.includes('saída');
-                      return (
-                        <div key={log.id} className="relative pl-6">
-                          <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${isInterval ? 'border-slate-400 bg-slate-400' : 'border-blue-500 bg-blue-500'} flex items-center justify-center`}>
-                            {isExit ? <ArrowLeft size={10} className="text-white" /> : <ArrowRight size={10} className="text-white" />}
-                          </div>
-                          <div className="text-sm font-bold text-white">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                          <div className="text-xs text-white/70">{log.type}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-white/80 py-10 space-y-4">
-                    <Clock size={48} className="opacity-50" />
-                    <p className="text-center font-medium">Ainda não foi feito registro hoje.</p>
-                    <p className="text-center text-sm opacity-70">Registre seu ponto.</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Digital Clock */}
-              <div className="text-center text-3xl font-mono font-bold py-4 text-slate-900">
-                {new Date().toLocaleTimeString()}
-              </div>
-            </div>
-          )}
-          {currentTab !== 'ponto' && (
-            <div className="flex items-center justify-center h-64 text-white/80">
-              Tela {currentTab} em construção.
-            </div>
-          )}
-        </div>
-
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-blue-600 text-white p-4 flex justify-between items-center border-t border-blue-400 px-8">
-          <button onClick={() => setCurrentTab('menu')} className="flex flex-col items-center w-16">
-            <MenuIcon size={24} />
-            <span className="text-xs">Menu</span>
-          </button>
-          <button onClick={() => setCurrentTab('ponto')} className="flex flex-col items-center w-16">
-            <Calendar size={24} />
-            <span className="text-xs">Dia</span>
-          </button>
-          <button onClick={() => setCurrentTab('menu')} className="flex flex-col items-center w-16">
-            <Settings size={24} />
-            <span className="text-xs">Configurações</span>
-          </button>
-        </div>
-      </div>
+      <Interface user={user} onLogout={handleLogout} />
     </ErrorBoundary>
   );
 };

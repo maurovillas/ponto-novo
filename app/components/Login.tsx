@@ -10,6 +10,11 @@ export const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) {
+      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) alert(error.message);
@@ -18,6 +23,11 @@ export const Login = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) {
+      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) alert(error.message);
@@ -27,6 +37,11 @@ export const Login = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) {
+      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback`,
@@ -35,6 +50,17 @@ export const Login = () => {
     else alert('E-mail de recuperação enviado.');
     setLoading(false);
   };
+
+  if (!supabase) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 dark:bg-slate-950 text-center">
+        <h1 className="text-2xl font-bold mb-6">Configuração do Supabase ausente</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md">
+          Defina as variáveis de ambiente <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code> e <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> em <code className="font-mono">.env.local</code>.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-slate-50 dark:bg-slate-950">

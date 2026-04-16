@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({subsets: ['latin'], variable: '--font-sans'});
 
 export const metadata: Metadata = {
-  title: 'DevNexus - Importar Projeto',
-  description: 'Importar Projeto GitHub',
+  title: 'Ponto Novo',
+  description: 'Aplicativo de controle de ponto',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
