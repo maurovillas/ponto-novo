@@ -1520,7 +1520,11 @@ export default function App() {
           <div className="flex justify-between items-center mb-4">
             <div className="w-8"></div>
             <h1 className="text-xl font-bold">
-              {currentTab === 'ponto' ? 'Dia' : currentTab === 'menu' ? 'Menu' : 'Configurações'}
+              {currentTab === 'ponto' ? 'Dia' : 
+               currentTab === 'menu' ? 'Menu' : 
+               currentTab === 'settings' ? 'Configurações' : 
+               currentTab === 'historico' ? 'Histórico' : 
+               currentTab === 'escala' ? 'Escala' : 'Outro'}
             </h1>
             <div className="flex gap-2">
               <button className="text-white"><Download size={20} /></button>
