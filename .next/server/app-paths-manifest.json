@@ -1,3 +1,4 @@
 {
+  "/api/test-crud/route": "app/api/test-crud/route.js",
   "/page": "app/page.js"
 }
