@@ -70,6 +70,7 @@ import { saveAs } from 'file-saver';
 
 import { Login } from './components/Login';
 import Interface from './components/Interface';
+import UserManagement from './components/UserManagement';
 import { getSupabase } from './supabase';
 const supabase = getSupabase();
 
@@ -888,7 +889,7 @@ export default function App() {
 
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu' | 'settings'>('ponto');
+  const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu' | 'settings' | 'users'>('ponto');
   useEffect(() => {
     const saved = localStorage.getItem('chronos_tab');
     if (saved) setCurrentTab(saved as any);
@@ -1081,12 +1082,37 @@ export default function App() {
   }, [user]);
 
   const handleLogout = async () => {
-    if (typeof window !== 'undefined' && window.confirm("Isso apenas limpará seus dados locais de identificação. Deseja continuar?")) {
-      localStorage.removeItem('ponto_anonymous_id');
-      localStorage.removeItem('ponto_user_name');
-      localStorage.removeItem('ponto_user_avatar');
-      if (typeof window !== 'undefined') {
-        window.location.reload();
+    if (typeof window !== 'undefined' && window.confirm("Isso irá desconectar sua conta. Deseja continuar?")) {
+      try {
+        // Logout do Supabase se estiver disponível
+        if (supabase) {
+          await supabase.auth.signOut();
+        }
+        
+        // Limpar dados locais
+        localStorage.removeItem('ponto_anonymous_id');
+        localStorage.removeItem('ponto_user_name');
+        localStorage.removeItem('ponto_user_avatar');
+        localStorage.removeItem('chronos_settings');
+        localStorage.removeItem('chronos_tab');
+        localStorage.removeItem('chronos_escala_view');
+        
+        // Recarregar a página
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        // Mesmo com erro, limpar dados locais e recarregar
+        localStorage.removeItem('ponto_anonymous_id');
+        localStorage.removeItem('ponto_user_name');
+        localStorage.removeItem('ponto_user_avatar');
+        localStorage.removeItem('chronos_settings');
+        localStorage.removeItem('chronos_tab');
+        localStorage.removeItem('chronos_escala_view');
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
       }
     }
   };
@@ -1531,7 +1557,37 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Interface user={user} onLogout={handleLogout} />
+      {currentTab === 'users' ? (
+        <div className="min-h-screen bg-slate-50">
+          <header className="bg-brand-blue text-white p-4 sm:p-6">
+            <div className="mx-auto max-w-7xl flex items-center justify-between">
+              <div>
+                <span className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.3em] text-brand-lime block">Ponto Novo</span>
+                <h1 className="mt-2 text-xl sm:text-2xl font-bold">Gerenciamento de Usuários</h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setCurrentTab('ponto')}
+                  className="text-white hover:text-brand-lime transition-colors"
+                >
+                  ← Voltar ao Dashboard
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors"
+                >
+                  Sair
+                </button>
+              </div>
+            </div>
+          </header>
+          <main className="mx-auto max-w-7xl px-4 py-8">
+            <UserManagement user={user} />
+          </main>
+        </div>
+      ) : (
+        <Interface user={user} onLogout={handleLogout} onNavigateToUsers={() => setCurrentTab('users')} />
+      )}
     </ErrorBoundary>
   );
 };
