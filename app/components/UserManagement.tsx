@@ -21,9 +21,11 @@ interface UserProfile {
 
 interface UserManagementProps {
   user: any;
+  onBack?: () => void;
+  onLogout?: () => void;
 }
 
-export default function UserManagement({ user }: UserManagementProps) {
+export default function UserManagement({ user, onBack, onLogout }: UserManagementProps) {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,9 +185,9 @@ export default function UserManagement({ user }: UserManagementProps) {
   };
 
   const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.department.toLowerCase().includes(searchTerm.toLowerCase())
+    (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user.department?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -197,20 +199,40 @@ export default function UserManagement({ user }: UserManagementProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-screen overflow-y-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Gerenciamento de Usuários</h1>
-          <p className="text-slate-600 mt-1">Gerencie usuários, perfis e permissões do sistema</p>
+        <div className="flex items-center gap-4">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              ← Voltar
+            </button>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Gerenciamento de Usuários</h1>
+            <p className="text-slate-600 mt-1">Gerencie usuários, perfis e permissões do sistema</p>
+          </div>
         </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 bg-brand-blue text-white px-4 py-2 rounded-xl hover:bg-brand-blue/90 transition-colors"
-        >
-          <Plus size={18} />
-          Novo Usuário
-        </button>
+        <div className="flex items-center gap-3">
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-2 bg-rose-500 text-white px-4 py-2 rounded-xl hover:bg-rose-600 transition-colors"
+            >
+              Sair
+            </button>
+          )}
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="flex items-center gap-2 bg-brand-blue text-white px-4 py-2 rounded-xl hover:bg-brand-blue/90 transition-colors"
+          >
+            <Plus size={18} />
+            Novo Usuário
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -318,7 +340,7 @@ export default function UserManagement({ user }: UserManagementProps) {
           </h2>
         </div>
 
-        <div className="divide-y divide-slate-200">
+        <div className="divide-y divide-slate-200 max-h-96 overflow-y-auto">
           {filteredUsers.length === 0 ? (
             <div className="p-8 text-center text-slate-500">
               {searchTerm ? 'Nenhum usuário encontrado' : 'Nenhum usuário cadastrado'}
@@ -329,22 +351,22 @@ export default function UserManagement({ user }: UserManagementProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <img
-                      src={user.avatar}
-                      alt={user.name}
+                      src={user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'}
+                      alt={user.name || 'Usuário'}
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div>
-                      <h3 className="font-semibold text-slate-900">{user.name}</h3>
+                      <h3 className="font-semibold text-slate-900">{user.name || 'Nome não informado'}</h3>
                       <div className="flex items-center gap-2 text-sm text-slate-600">
                         <Mail size={14} />
-                        {user.email}
+                        {user.email || 'Email não informado'}
                       </div>
                       <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
-                        <span>{user.role}</span>
+                        <span>{user.role || 'Cargo não informado'}</span>
                         <span>•</span>
-                        <span>{user.department}</span>
+                        <span>{user.department || 'Departamento não informado'}</span>
                         <span>•</span>
-                        <span>{new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
+                        <span>{user.created_at ? new Date(user.created_at).toLocaleDateString('pt-BR') : 'Data não informada'}</span>
                       </div>
                     </div>
                   </div>
@@ -391,7 +413,7 @@ export default function UserManagement({ user }: UserManagementProps) {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Nome</label>
                 <input
                   type="text"
-                  value={editingUser.name}
+                  value={editingUser.name || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-brand-blue focus:outline-none"
                 />
@@ -399,7 +421,7 @@ export default function UserManagement({ user }: UserManagementProps) {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Cargo</label>
                 <select
-                  value={editingUser.role}
+                  value={editingUser.role || 'Colaborador'}
                   onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-brand-blue focus:outline-none"
                 >
@@ -412,7 +434,7 @@ export default function UserManagement({ user }: UserManagementProps) {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Departamento</label>
                 <input
                   type="text"
-                  value={editingUser.department}
+                  value={editingUser.department || ''}
                   onChange={(e) => setEditingUser({ ...editingUser, department: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:border-brand-blue focus:outline-none"
                 />

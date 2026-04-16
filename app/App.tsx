@@ -1582,7 +1582,7 @@ export default function App() {
             </div>
           </header>
           <main className="mx-auto max-w-7xl px-4 py-8">
-            <UserManagement user={user} />
+            <UserManagement user={user} onBack={() => setCurrentTab('menu')} onLogout={handleLogout} />
           </main>
         </div>
       ) : (
