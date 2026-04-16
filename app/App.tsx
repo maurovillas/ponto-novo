@@ -888,7 +888,7 @@ export default function App() {
 
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu'>('ponto');
+  const [currentTab, setCurrentTab] = useState<'ponto' | 'historico' | 'escala' | 'menu' | 'extra_menu' | 'settings'>('ponto');
   useEffect(() => {
     const saved = localStorage.getItem('chronos_tab');
     if (saved) setCurrentTab(saved as any);
